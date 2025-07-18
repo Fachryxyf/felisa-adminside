@@ -1,0 +1,212 @@
+<%# Fungsi helper untuk mendapatkan inisial dari nama %>
+<%
+    const getInitials = (fullName) => {
+        if (!fullName) return '';
+        const names = fullName.split(' ');
+        let initials = names[0].charAt(0);
+        if (names.length > 1) {
+            initials += names[names.length - 1].charAt(0);
+        }
+        return initials.toUpperCase();
+    };
+%>
+
+<%- include('partials/header', { title: 'Data Penilaian' }) %>
+<%- include('partials/sidebar') %>
+
+<style>
+    .review-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); display: flex; gap: 20px; align-items: flex-start; }
+    .review-card .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+    .review-card .content { flex-grow: 1; }
+    .review-card .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .review-card .stars { color: #ffc107; font-size: 1.2em; }
+    .review-card .actions button { background: none; border: none; cursor: pointer; padding: 5px; }
+    .review-card .actions button img { width: 20px; height: 20px; opacity: 0.6; }
+    .review-card .actions button:hover img { opacity: 1; }
+    .review-card p { margin-top: 5px; color: #555; }
+    .modal-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s, visibility 0.3s;
+    }
+    .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        text-align: center;
+        max-width: 400px;
+    }
+    .modal-actions {
+        margin-top: 20px;
+    }
+    .btn-danger {
+        background-color: #D8000C;
+        color: white;
+    }
+    .avatar-initial {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: #ffe8dc; /* Warna senada dengan desain */
+        color: #ff8c42;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.4em;
+        font-weight: bold;
+    }
+    .trash-icon {
+        width: 28px;
+        height: 28px;
+        color: #888;
+        transition: color 0.2s ease;
+    }
+
+    .delete-btn:hover .trash-icon {
+        color: #e53935;
+    }
+</style>
+
+<h1>Data Penilaian</h1>
+<p>Kelola semua ulasan yang diberikan oleh pelanggan Anda.</p>
+
+<div class="reviews-list">
+    <% if (reviews.length > 0) { %>
+        <% reviews.forEach(review => { %>
+            <div class="review-card" id="review-<%= review.id %>">
+                <div class="avatar-container">
+                    <%# Logika untuk menampilkan gambar atau inisial %>
+                    <% if (review.avatar_url && review.avatar_url.startsWith('http')) { %>
+                        <img src="<%= review.avatar_url %>" alt="Avatar" class="avatar">
+                    <% } else { %>
+                        <div class="avatar-initial"><%= getInitials(review.reviewer_name) %></div>
+                    <% } %>
+                </div>
+
+                <div class="content">
+                    <div class="header">
+                        <div>
+                            <strong><%= review.reviewer_name %></strong>
+                            <div class="stars">
+                                <% const starCount = Math.round(review.total_score / 20); %>
+                                <% for(let i = 0; i < 5; i++) { %>
+                                    <span><%= i < starCount ? '★' : '☆' %></span>
+                                <% } %>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button 
+                                title="Hapus Ulasan" 
+                                class="delete-btn" 
+                                data-id="<%= review.id %>" 
+                                style="background: none; border: none; cursor: pointer; padding: 4px;">
+                                
+                                    <svg 
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        fill="currentColor" 
+                                        viewBox="0 0 24 24" 
+                                        class="trash-icon">
+                                        
+                                            <path 
+                                                fill-rule="evenodd" 
+                                                d="M9 3a1 1 0 00-1 1v1H5.5a.5.5 0 000 1H6l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12h.5a.5.5 0 000-1H16V4a1 1 0 00-1-1H9zm1 5a.5.5 0 011 0v8a.5.5 0 01-1 0V8zm4 0a.5.5 0 011 0v8a.5.5 0 01-1 0V8z" 
+                                                clip-rule="evenodd"/>
+                                    </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <p><%= review.comment %></p>
+                </div>
+            </div>
+        <% }) %>
+    <% } else { %>
+        <p>Belum ada ulasan yang masuk.</p>
+    <% } %>
+</div>
+
+<div id="delete-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>Yakin untuk menghapus komentar?</h3>
+        <p>Tindakan ini tidak dapat dibatalkan.</p>
+        <div class="modal-actions">
+            <button id="confirm-delete-btn" class="btn btn-danger">Yakin</button>
+            <button id="cancel-delete-btn" class="btn btn-cancel">Batal</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const reviewsList = document.querySelector('.reviews-list');
+        const modal = document.getElementById('delete-modal');
+        const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+        const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+        let reviewIdToDelete = null;
+
+        // 1. Event listener untuk semua klik di dalam daftar ulasan
+        reviewsList.addEventListener('click', (event) => {
+            // Cari tombol hapus yang paling dekat dengan target klik
+            const deleteButton = event.target.closest('.delete-btn');
+
+            if (deleteButton) {
+                // Ambil ID dari atribut data-id
+                reviewIdToDelete = deleteButton.dataset.id;
+                // Tampilkan modal
+                modal.classList.add('show');
+            }
+        });
+
+        // 2. Fungsi untuk menyembunyikan modal
+        const hideModal = () => {
+            modal.classList.remove('show');
+            reviewIdToDelete = null;
+        };
+
+        // 3. Event listener untuk tombol "Batal"
+        cancelDeleteBtn.addEventListener('click', hideModal);
+
+        // 4. Event listener untuk tombol "Yakin"
+        confirmDeleteBtn.addEventListener('click', async () => {
+            if (!reviewIdToDelete) return;
+
+            try {
+                // Kirim permintaan DELETE ke backend
+                const response = await fetch(`/reviews/${reviewIdToDelete}`, {
+                    method: 'DELETE',
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Jika berhasil, cari kartu ulasan dan hapus dari halaman
+                    const reviewCard = document.querySelector(`.delete-btn[data-id='${reviewIdToDelete}']`).closest('.review-card');
+                    if (reviewCard) {
+                        reviewCard.remove();
+                    }
+                    hideModal();
+                } else {
+                    alert('Gagal menghapus ulasan: ' + result.message);
+                    hideModal();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan. Silakan coba lagi.');
+                hideModal();
+            }
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>
