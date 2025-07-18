@@ -21,7 +21,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(express.static('public')); 
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+app.use(express.static('assets'));
 
 // Setup EJS sebagai view engine
 app.set('view engine', 'ejs');
