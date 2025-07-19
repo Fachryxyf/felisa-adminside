@@ -1,0 +1,139 @@
+<%- include('../partials/header', { title: 'Pengaturan Bobot SAW' }) %>
+<%- include('../partials/sidebar') %>
+
+<style>
+    .main-content {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    box-sizing: border-box;
+    padding: 40px;
+    }
+    .settings-card {
+        background-color: white;
+        border-radius: 15px;
+        padding: 35px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        max-width: 800px;
+        margin: 0 auto; /* Posisi di tengah */
+    }
+    .settings-card h2 {
+        margin-top: 0;
+        font-size: 1.5rem;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    .settings-card p {
+        color: #777;
+        margin-top: 0;
+        margin-bottom: 30px;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 20px;
+    }
+    .form-group {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .form-group:last-of-type {
+        border-bottom: none;
+    }
+    .form-group label {
+        font-weight: 600;
+        color: #555;
+    }
+    .form-group input {
+        width: 100px;
+        padding: 8px 12px;
+        box-sizing: border-box;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        text-align: right;
+        font-size: 1em;
+    }
+    .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #f0f0f0;
+    }
+    .total-weight {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    .btn-primary {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        background-color: #ff8c42;
+        color: white;
+        font-weight: 600;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .btn-primary:hover {
+        background-color: #e07a38;
+    }
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    .alert-danger { background-color: #f2dede; color: #a94442; }
+    .alert-success { background-color: #dff0d8; color: #3c763d; }
+</style>
+
+<div class="settings-card">
+    <h2>Pengaturan Bobot Kriteria (SAW)</h2>
+    <p>Ubah nilai bobot untuk setiap kriteria. Pastikan total dari semua bobot adalah 1.0 agar perhitungannya akurat.</p>
+
+    <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <form action="/settings/weights" method="POST">
+        <% weights.forEach(w => { %>
+            <div class="form-group">
+                <label for="<%= w.criterion_code %>"><%= w.criterion_name %> (<%= w.criterion_code %>)</label>
+                <input type="number" step="0.01" min="0" max="1" name="<%= w.criterion_code %>" value="<%= w.weight %>" required>
+            </div>
+        <% }) %>
+        
+        <div class="form-footer">
+            <div class="total-weight">
+                Total Bobot: <span id="total-sum">1.00</span>
+            </div>
+            <button type="submit" class="btn-primary">Simpan Perubahan</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const inputs = document.querySelectorAll('form input[type="number"]');
+    const totalSumEl = document.getElementById('total-sum');
+
+    function updateTotal() {
+        let sum = 0;
+        inputs.forEach(input => {
+            sum += parseFloat(input.value) || 0;
+        });
+        totalSumEl.textContent = sum.toFixed(2);
+        if (Math.abs(sum - 1.0) > 0.001) {
+            totalSumEl.style.color = 'red';
+        } else {
+            totalSumEl.style.color = 'green';
+        }
+    }
+
+    inputs.forEach(input => input.addEventListener('input', updateTotal));
+    updateTotal();
+</script>
+
+<%- include('../partials/footer') %>

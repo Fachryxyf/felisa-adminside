@@ -59,8 +59,76 @@ const handleLogout = (req, res) => {
     res.redirect('/login'); // Redirect ke halaman login
 };
 
+// --- FUNGSI BARU UNTUK LUPA PASSWORD (VERSI TIDAK AMAN) ---
+
+// 1. Menampilkan halaman form lupa password
+const renderForgotPasswordPage = (req, res) => {
+    res.render('auth/forgot-password', { error: null });
+};
+
+// 2. Memeriksa email dan mengarahkan ke form reset jika valid
+const handleForgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const { rows } = await db.query('SELECT * FROM admins WHERE email = $1', [email]);
+
+        if (rows.length === 0) {
+            // Jika email tidak ditemukan, kembali ke halaman yang sama dengan pesan error
+            return res.render('auth/forgot-password', { error: 'Email tidak ditemukan di database.' });
+        }
+
+        // Jika email ditemukan, arahkan ke halaman reset dengan membawa email
+        res.redirect(`/reset-password-form?email=${email}`);
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.render('auth/forgot-password', { error: 'Terjadi kesalahan pada server.' });
+    }
+};
+
+// 3. Menampilkan halaman untuk memasukkan password baru
+const renderResetPasswordPage = (req, res) => {
+    const { email } = req.query; // Ambil email dari query URL
+    if (!email) {
+        // Jika tidak ada email, kembalikan ke halaman awal
+        return res.redirect('/forgot-password');
+    }
+    res.render('auth/reset-password', { email, error: null });
+};
+
+// 4. Memproses dan menyimpan password baru
+const handleResetPassword = async (req, res) => {
+    const { email, password, confirmPassword } = req.body;
+
+    if (password !== confirmPassword) {
+        return res.render('auth/reset-password', { email, error: 'Password tidak cocok.' });
+    }
+
+    try {
+        const newPasswordHash = await bcrypt.hash(password, 10);
+
+        // Update password di database berdasarkan email
+        await db.query(
+            'UPDATE admins SET password_hash = $1 WHERE email = $2',
+            [newPasswordHash, email]
+        );
+
+        // Arahkan ke halaman login setelah berhasil
+        res.redirect('/login');
+
+    } catch (error) {
+        console.error('Handle reset password error:', error);
+        res.render('auth/reset-password', { email, error: 'Terjadi kesalahan saat menyimpan password.' });
+    }
+};
+
+
 module.exports = {
     renderLoginPage,
     handleLogin,
-    handleLogout // Export fungsi baru
+    handleLogout,
+    renderForgotPasswordPage,
+    handleForgotPassword,
+    renderResetPasswordPage,
+    handleResetPassword
 };

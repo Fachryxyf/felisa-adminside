@@ -5,14 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Admin AyudCraft</title>
     <link rel="icon" href="./assets/logo.png" />
-    <style>
-        body { margin: 0; font-family: 'Poppins', sans-serif; background-color: #f8f9fa; display: flex; }
-        .sidebar { width: 250px; background-color: #fbc6a4; height: 100vh; padding: 20px; }
-        .sidebar h2 { text-align: center; font-family: 'Playfair Display', serif; }
-        .sidebar ul { list-style: none; padding: 0; }
-        .sidebar ul li a { display: block; padding: 15px; text-decoration: none; color: #3a3a3a; font-weight: 600; border-radius: 8px; }
-        .sidebar ul li a.active, .sidebar ul li a:hover { background-color: #ff8c42; color: white; }
-        .main-content { flex-grow: 1; padding: 40px; }
-    </style>
+    <%# --- Link Font Poppins (sudah ada) --- %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <%# --- TAMBAHKAN 3 BARIS DI BAWAH INI untuk Font Judul --- %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+
+        <style>
+            body, html {
+                margin: 0;
+                padding: 0;
+                font-family: 'Poppins', sans-serif;
+                background-color: #FFFBF5; /* Warna latar yang lembut */
+            }
+
+            .wrapper {
+                display: flex;
+            }
+
+            /* === Sidebar Styling Baru === */
+            .sidebar {
+                width: 260px;
+                background-color: #FDE2CA; /* Warna peach terang */
+                height: 100vh;
+                position: fixed;
+                top: 0;
+                left: 0;
+                display: flex;
+                flex-direction: column; /* Mengatur item secara vertikal */
+                padding: 20px;
+                box-sizing: border-box;
+            }
+
+            .sidebar-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #FBC6A4;
+            }
+
+            .sidebar-logo {
+                width: 40px;
+                height: 40px;
+            }
+
+            .sidebar-header h2 {
+                margin: 0;
+                font-family: 'Playfair Display', serif;
+                font-size: 1.5rem;
+                color: #3A3A3A;
+            }
+
+            .sidebar-nav ul {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .sidebar-nav a, .logout-link {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                padding: 15px;
+                margin-bottom: 8px;
+                border-radius: 10px;
+                text-decoration: none;
+                color: #6D6D6D;
+                font-weight: 600;
+                transition: background-color 0.3s, color 0.3s;
+            }
+
+            .sidebar-nav a:hover, .logout-link:hover {
+                background-color: #FFF0E5;
+                color: #3A3A3A;
+            }
+
+            .sidebar-nav a.active {
+                background-color: #FF8C42; /* Warna aksen oranye */
+                color: white;
+            }
+
+            .logout-link {
+                margin-top: auto; /* Trik Flexbox: Mendorong item ini ke paling bawah */
+            }
+
+            /* === Konten Utama === */
+            .main-content {
+                margin-left: 260px; /* Memberi ruang selebar sidebar */
+                padding: 40px;
+                width: calc(100% - 260px);
+            }
+        </style>
 </head>
 <body>

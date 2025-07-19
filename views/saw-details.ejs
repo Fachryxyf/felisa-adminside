@@ -1,0 +1,107 @@
+<%- include('partials/header', { title: 'Detail Perhitungan SAW' }) %>
+<%- include('partials/sidebar') %>
+
+<style>
+    .main-content {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    box-sizing: border-box;
+    padding: 40px
+    }
+    .card { background-color: white; border-radius: 15px; padding: 30px; box-shadow: 0 8px 25px rgba(0,0,0,0.07); margin-bottom: 30px; }
+    .card h2 { margin-top: 0; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background-color: #f9f9f9; font-weight: 600; color: #555; }
+    td { font-size: 0.95em; }
+    tbody tr:hover { background-color: #fdfcfb; }
+</style>
+
+<h1>Detail Perhitungan Metode SAW</h1>
+<p>Halaman ini memaparkan proses langkah demi langkah dari metode Simple Additive Weighting (SAW) untuk menentukan peringkat ulasan.</p>
+
+<div class="card">
+    <h2>1. Bobot Kriteria (W)</h2>
+    <p>Setiap kriteria diberi bobot sesuai tingkat kepentingannya dalam penilaian akhir.</p>
+    <table>
+        <thead><tr><th>Kode</th><th>Nama Kriteria</th><th>Bobot</th></tr></thead>
+        <tbody>
+            <% for (const key in config.criteria) { %>
+                <tr><td><%= key %></td><td><%= config.criteria[key].name %></td><td><%= config.criteria[key].weight %></td></tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>2. Data Awal (Matriks Keputusan X)</h2>
+    <p>Data rating mentah (skala 1-5) yang diberikan oleh pengguna untuk setiap kriteria.</p>
+    <table>
+        <thead><tr><th>Reviewer</th><th>B1</th><th>B2</th><th>B3</th><th>B4</th><th>B5</th></tr></thead>
+        <tbody>
+            <% reviews.forEach(review => { %>
+                <tr><td><%= review.reviewer_name %></td><td><%= review.ratings.B1 %></td><td><%= review.ratings.B2 %></td><td><%= review.ratings.B3 %></td><td><%= review.ratings.B4 %></td><td><%= review.ratings.B5 %></td></tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>3. Matriks Ternormalisasi (R)</h2>
+    <p>Setiap nilai dinormalisasi dengan membaginya dengan nilai maksimum pada setiap kolom kriteria. (Rumus: R<sub>ij</sub> = X<sub>ij</sub> / Max(X<sub>ij</sub>))</p>
+    <table>
+        <thead><tr><th>Reviewer</th><th>B1</th><th>B2</th><th>B3</th><th>B4</th><th>B5</th></tr></thead>
+        <tbody>
+            <% sawResults.forEach(item => { %>
+                <tr><td><%= item.review.reviewer_name %></td><td><%= item.normalized[0] %></td><td><%= item.normalized[1] %></td><td><%= item.normalized[2] %></td><td><%= item.normalized[3] %></td><td><%= item.normalized[4] %></td></tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>4. Hasil Akhir & Peringkat (V)</h2>
+    <p>Hasil akhir dihitung dengan menjumlahkan hasil perkalian matriks ternormalisasi dengan bobot kriteria. (Rumus: V<sub>i</sub> = Σ (W<sub>j</sub> * R<sub>ij</sub>))</p>
+    <table>
+        <thead><tr><th>Peringkat</th><th>Reviewer</th><th>Skor Akhir (0-1)</th><th>Skor Akhir (0-100)</th></tr></thead>
+        <tbody>
+            <% sawResults.forEach((item, index) => { %>
+                <tr><td><strong>#<%= index + 1 %></strong></td><td><%= item.review.reviewer_name %></td><td><%= item.score %></td><td><%= (item.score * 100).toFixed(2) %></td></tr>
+            <% }) %>
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>5. Grafik Peringkat Ulasan</h2>
+    <canvas id="sawChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('sawChart').getContext('2d');
+        const chartData = JSON.parse('<%- JSON.stringify(chartData) %>');
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Skor Akhir (skala 100)',
+                    data: chartData.scores,
+                    backgroundColor: '#FFDAB9',
+                    borderColor: '#FF8C42',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: { x: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

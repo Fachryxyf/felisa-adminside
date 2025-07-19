@@ -1,0 +1,70 @@
+<style>
+    .progress-indicator {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    .progress-indicator::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #e0e0e0;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9em;
+        color: #aaa;
+        position: relative;
+        z-index: 2;
+        background-color: #fff;
+        padding-right: 10px;
+    }
+    .step:last-child {
+        padding-right: 0;
+        padding-left: 10px;
+    }
+    .step .icon {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 2px solid #aaa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+    }
+
+    /* Styling untuk step yang aktif atau selesai */
+    .step.active .icon, .step.completed .icon {
+        border-color: #ff8c42;
+        background-color: #ff8c42;
+        color: white;
+    }
+    .step.active .label, .step.completed .label {
+        color: #333;
+        font-weight: 600;
+    }
+    .step.completed .icon::before {
+        content: '✓';
+    }
+</style>
+
+<div class="progress-indicator">
+    <div class="step <%= (step >= 1) ? (step > 1 ? 'completed' : 'active') : '' %>">
+        <div class="icon">1</div>
+        <div class="label">Masukkan Email</div>
+    </div>
+    <div class="step <%= (step >= 2) ? 'active' : '' %>">
+        <div class="icon">2</div>
+        <div class="label">Ganti Password</div>
+    </div>
+</div>

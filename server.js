@@ -11,6 +11,8 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const reviewsRoutes = require('./routes/reviewsRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const apiRoutes = require('./routes/apiRoutes');
+const sawRoutes = require('./routes/sawRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 
 // Inisialisasi aplikasi Express
 const app = express();
@@ -34,6 +36,8 @@ app.use('/', authRoutes);
 app.use('/', dashboardRoutes);
 app.use('/', reviewsRoutes);
 app.use('/', profileRoutes);
+app.use('/', sawRoutes);
+app.use('/', settingsRoutes);
 
 // Rute dasar sekarang mengarah ke login
 app.get('/', (req, res) => {
