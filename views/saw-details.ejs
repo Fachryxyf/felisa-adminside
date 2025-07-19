@@ -1,4 +1,4 @@
-<%- include('partials/header', { title: 'Detail Perhitungan SAW' }) %>
+<%- include('partials/header', { title: 'Peringkat Produk (SAW)' }) %>
 <%- include('partials/sidebar') %>
 
 <style>
@@ -15,10 +15,11 @@
     th { background-color: #f9f9f9; font-weight: 600; color: #555; }
     td { font-size: 0.95em; }
     tbody tr:hover { background-color: #fdfcfb; }
+    .info { background-color: #eef7ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;}
 </style>
 
-<h1>Detail Perhitungan Metode SAW</h1>
-<p>Halaman ini memaparkan proses langkah demi langkah dari metode Simple Additive Weighting (SAW) untuk menentukan peringkat ulasan.</p>
+<h1>Peringkat Produk Berdasarkan Ulasan Pelanggan (Metode SAW)</h1>
+<p>Halaman ini menampilkan produk terbaik berdasarkan hasil agregat dari semua ulasan jujur pelanggan.</p>
 
 <div class="card">
     <h2>1. Bobot Kriteria (W)</h2>
@@ -34,13 +35,20 @@
 </div>
 
 <div class="card">
-    <h2>2. Data Awal (Matriks Keputusan X)</h2>
-    <p>Data rating mentah (skala 1-5) yang diberikan oleh pengguna untuk setiap kriteria.</p>
+    <h2>2. Data Rata-Rata per Produk (Matriks Keputusan X)</h2>
+    <p>Data rating mentah dari semua ulasan dikelompokkan dan dirata-ratakan untuk setiap produk.</p>
     <table>
-        <thead><tr><th>Reviewer</th><th>B1</th><th>B2</th><th>B3</th><th>B4</th><th>B5</th></tr></thead>
+        <thead><tr><th>Nama Produk</th><th>Rata-rata B1</th><th>Rata-rata B2</th><th>Rata-rata B3</th><th>Rata-rata B4</th><th>Rata-rata B5</th></tr></thead>
         <tbody>
-            <% reviews.forEach(review => { %>
-                <tr><td><%= review.reviewer_name %></td><td><%= review.ratings.B1 %></td><td><%= review.ratings.B2 %></td><td><%= review.ratings.B3 %></td><td><%= review.ratings.B4 %></td><td><%= review.ratings.B5 %></td></tr>
+            <% products.forEach(product => { %>
+                <tr>
+                    <td><strong><%= product.name %></strong></td>
+                    <td><%= product.avgRatings[0].toFixed(2) %></td>
+                    <td><%= product.avgRatings[1].toFixed(2) %></td>
+                    <td><%= product.avgRatings[2].toFixed(2) %></td>
+                    <td><%= product.avgRatings[3].toFixed(2) %></td>
+                    <td><%= product.avgRatings[4].toFixed(2) %></td>
+                </tr>
             <% }) %>
         </tbody>
     </table>
@@ -48,32 +56,48 @@
 
 <div class="card">
     <h2>3. Matriks Ternormalisasi (R)</h2>
-    <p>Setiap nilai dinormalisasi dengan membaginya dengan nilai maksimum pada setiap kolom kriteria. (Rumus: R<sub>ij</sub> = X<sub>ij</sub> / Max(X<sub>ij</sub>))</p>
+    <p>Nilai rata-rata setiap produk dinormalisasi berdasarkan nilai maksimum di setiap kriteria.</p>
     <table>
-        <thead><tr><th>Reviewer</th><th>B1</th><th>B2</th><th>B3</th><th>B4</th><th>B5</th></tr></thead>
+        <thead><tr><th>Nama Produk</th><th>B1</th><th>B2</th><th>B3</th><th>B4</th><th>B5</th></tr></thead>
         <tbody>
             <% sawResults.forEach(item => { %>
-                <tr><td><%= item.review.reviewer_name %></td><td><%= item.normalized[0] %></td><td><%= item.normalized[1] %></td><td><%= item.normalized[2] %></td><td><%= item.normalized[3] %></td><td><%= item.normalized[4] %></td></tr>
+                <tr>
+                    <td><strong><%= item.product.name %></strong></td>
+                    <td><%= item.normalized[0] %></td>
+                    <td><%= item.normalized[1] %></td>
+                    <td><%= item.normalized[2] %></td>
+                    <td><%= item.normalized[3] %></td>
+                    <td><%= item.normalized[4] %></td>
+                </tr>
             <% }) %>
         </tbody>
     </table>
 </div>
 
 <div class="card">
-    <h2>4. Hasil Akhir & Peringkat (V)</h2>
-    <p>Hasil akhir dihitung dengan menjumlahkan hasil perkalian matriks ternormalisasi dengan bobot kriteria. (Rumus: V<sub>i</sub> = Σ (W<sub>j</sub> * R<sub>ij</sub>))</p>
+    <h2>4. Hasil Akhir & Peringkat Produk (V)</h2>
+    <p>Skor akhir setiap produk dihitung dari matriks ternormalisasi dan bobot kriteria.</p>
     <table>
-        <thead><tr><th>Peringkat</th><th>Reviewer</th><th>Skor Akhir (0-1)</th><th>Skor Akhir (0-100)</th></tr></thead>
+        <thead><tr><th>Peringkat</th><th>Nama Produk</th><th>Skor Akhir (0-1)</th><th>Skor Akhir (0-100)</th></tr></thead>
         <tbody>
             <% sawResults.forEach((item, index) => { %>
-                <tr><td><strong>#<%= index + 1 %></strong></td><td><%= item.review.reviewer_name %></td><td><%= item.score %></td><td><%= (item.score * 100).toFixed(2) %></td></tr>
+                <% if (index === 0) { %>
+                    <tr style="background-color: #fffbeb;">
+                <% } else { %>
+                    <tr>
+                <% } %>
+                        <td><strong>#<%= index + 1 %></strong></td>
+                        <td><strong><%= item.product.name %></strong></td>
+                        <td><%= item.score %></td>
+                        <td><%= (item.score * 100).toFixed(2) %></td>
+                    </tr>
             <% }) %>
         </tbody>
     </table>
 </div>
 
 <div class="card">
-    <h2>5. Grafik Peringkat Ulasan</h2>
+    <h2>5. Grafik Peringkat Produk</h2>
     <canvas id="sawChart"></canvas>
 </div>
 
@@ -98,7 +122,7 @@
             options: {
                 indexAxis: 'y',
                 scales: { x: { beginAtZero: true, max: 100 } },
-                plugins: { legend: { display: false } }
+                plugins: { legend: { display: false }, title: { display: true, text: 'Peringkat Produk Berdasarkan Skor SAW' } }
             }
         });
     });
