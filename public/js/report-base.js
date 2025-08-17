@@ -17,7 +17,7 @@
     doc.__marginX = opts.marginX ?? 15;
     doc.__startY = opts.startY ?? 12;
     doc.__logoUrl = opts.logoUrl ?? '/assets/logo.png';
-    doc.__place = opts.place ?? 'Jakarta';
+    doc.__place = opts.place ?? 'Tanggeran Selatan';
     doc.__dateStr =
       opts.dateStr ??
       new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -36,14 +36,14 @@
     const usaha = headerInfo.usaha ?? 'Ayud Craft';
     const telp = headerInfo.telp ?? '+62 857-1141-4788';
     const email = headerInfo.email ?? 'Aska.180180@gmail.com';
-    const owner = headerInfo.owner ?? 'Aska Yudhiantie';
+    const owner = headerInfo.owner ?? 'Grand Serpong Residences Blok A3 No.6A, Sarua, Ciputat, Tangerang Selatan, Banten';
 
     doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
     doc.text(usaha, mx + 105, y0 + 6, { align: 'center' });
 
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
     doc.text(`Telp: ${telp}  |  Email: ${email}`, mx + 105, y0 + 12, { align: 'center' });
-    doc.text(`Pemilik: ${owner}`, mx + 105, y0 + 18, { align: 'center' });
+    doc.text(`${owner}`, mx + 105, y0 + 18, { align: 'center' });
 
     // Garis bawah
     doc.setLineWidth(0.6);
