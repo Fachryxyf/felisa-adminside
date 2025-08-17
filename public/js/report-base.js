@@ -40,10 +40,9 @@
 
     doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
     doc.text(usaha, mx + 105, y0 + 6, { align: 'center' });
-
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-    doc.text(`${owner}`, mx + 105, y0 + 18, { align: 'center' });
-    doc.text(`Telp: ${telp}  |  Email: ${email}`, mx + 105, y0 + 12, { align: 'center' });
+    doc.text(`${owner}`, mx + 105, y0 + 12, { align: 'center' });
+    doc.text(`Telp: ${telp}  |  Email: ${email}`, mx + 105, y0 + 18, { align: 'center' });
 
     // Garis bawah
     doc.setLineWidth(0.6);
