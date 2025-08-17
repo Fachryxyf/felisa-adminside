@@ -2,56 +2,30 @@
 <%- include('partials/sidebar') %>
 
 <style>
-    .main-content {
-    margin-left: 260px;
-    width: calc(100% - 260px);
+  :root{
+    --sb: 260px;
+  }
+
+  .main-content{
+    position: fixed;
+    left: var(--sb);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0;
+    margin: 0;
     box-sizing: border-box;
-    padding: 40px;
-    }
-    .dashboard-container {
-        background-color: #FFF7F0; /* Warna latar belakang lembut yang serasi */
-        border-radius: 15px;
-        padding: 40px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    }
-    .dashboard-title {
-        font-family: 'Pacifico', cursive; /* Menggunakan font kustom */
-        font-size: 4rem; /* Ukuran font lebih besar */
-        font-weight: 400;
-        color: #4A4A4A;
-        margin-top: 20px;
-        margin-bottom: 30px;
-        /* Efek Teks seperti di gambar */
-        position: relative;
-        display: inline-block;
-    }
-    .dashboard-title::before, .dashboard-title::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        width: 80px;
-        height: 2px;
-        background-color: #E0C9B6;
-    }
-    .dashboard-title::before {
-        left: -100px;
-    }
-    .dashboard-title::after {
-        right: -100px;
-    }
-    .dashboard-illustration {
-        max-width: 700px;
-        width: 100%;
-        height: auto;
-        margin-top: 20px;
-        border-radius: 12px;
-    }
+  }
+
+  .hero-cover{
+    width: 100%;
+    height: 100%;
+    background: url('../assets/bg.png') center center / cover no-repeat;
+  }
 </style>
 
-<div class="dashboard-container">
-    <h1 class="dashboard-title">Ayud Craft</h1>
-    <p>Selamat datang di halaman Admin, <%= admin.email %>!</p>
-    <img src="../assets/bg.png" alt="Ilustrasi Craft" class="dashboard-illustration"></div>
+<div class="main-content">
+  <div class="hero-cover"></div>
+</div>
 
 <%- include('partials/footer') %>
