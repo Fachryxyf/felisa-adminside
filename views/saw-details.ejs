@@ -16,6 +16,34 @@
     td { font-size: 0.95em; }
     tbody tr:hover { background-color: #fdfcfb; }
     .info { background-color: #eef7ff; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 8px; margin-bottom: 20px;}
+    .btn-primary {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        background-color: #ff8c42;
+        color: white;
+        font-weight: 600;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .btn-primary:hover {
+        background-color: #e07a38;
+    }
+    .btn-confirm {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        background-color: rgb(222, 205, 192);
+        color: #ff8c42;
+        font-weight: 600;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .btn-confirm:hover {
+        background-color: #ebe6e2;
+    }
 </style>
 
 <h1>Peringkat Produk Berdasarkan Ulasan Pelanggan (Metode SAW)</h1>
@@ -23,6 +51,10 @@
 
 <div class="card">
     <h2>1. Bobot Kriteria (W)</h2>
+    <div style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+    <button id="btnReportSAW" class="btn-primary">Download Report SAW</button>
+    <button id="btnReportProducts" class="btn-confirm">Download Report Produk</button>
+    </div>
     <p>Setiap kriteria diberi bobot sesuai tingkat kepentingannya dalam penilaian akhir.</p>
     <table>
         <thead><tr><th>Kode</th><th>Nama Kriteria</th><th>Bobot</th></tr></thead>
@@ -126,6 +158,87 @@
             }
         });
     });
+</script>
+
+<!-- === Report Script: SAW Details (SAW + Produk) === -->
+<script>
+(async function attachSawReports() {
+  // --- Load deps only once ---
+  function loadOnce(src) {
+    return new Promise((resolve, reject) => {
+      if ([...document.scripts].some(s => s.src.includes(src))) return resolve();
+      const el = document.createElement('script');
+      el.src = src; el.onload = resolve; el.onerror = reject;
+      document.head.appendChild(el);
+    });
+  }
+  if (!window.jspdf) {
+    await loadOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+  }
+  if (!window.jspdf?.jsPDF?.API?.autoTable) {
+    await loadOnce('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.3/dist/jspdf.plugin.autotable.min.js');
+  }
+  if (!window.ReportBase) {
+    await loadOnce('/js/report-base.js');
+  }
+
+  // --- Ambil data yang sudah ada di halaman ini ---
+  const __criteria = JSON.parse('<%- JSON.stringify(config.criteria) %>');  // {B1:{name,weight}, ...}
+  const __products = JSON.parse('<%- JSON.stringify(products) %>');         // [{ name, avgRatings:[...] }]
+  const __saw      = JSON.parse('<%- JSON.stringify(sawResults) %>');       // [{ product, normalized, score }]
+
+  // --- Builder: Report SAW (peringkat + bobot) ---
+  async function downloadReportSAW() {
+    const doc = await ReportBase.createDoc();
+    let y = await ReportBase.addHeader(doc);
+    y = ReportBase.addTitle(doc, 'Report SAW - Peringkat Produk', y + 6);
+
+    // Tabel Bobot Kriteria
+    const weightRows = Object.keys(__criteria).map(k => [k, __criteria[k].name, __criteria[k].weight]);
+    y = ReportBase.addTable(doc, ['Kode','Nama Kriteria','Bobot'], weightRows, y + 4);
+
+    // Tabel Peringkat
+    const rankRows = __saw.map((it, i) => [`#${i+1}`, it.product.name, it.score, (it.score*100).toFixed(2)]);
+    ReportBase.addTable(doc, ['Peringkat','Nama Produk','Skor Akhir (0-1)','Skor Akhir (0-100)'], rankRows, y);
+
+    ReportBase.addSignature(doc);
+    ReportBase.save(doc, 'report-saw.pdf');
+  }
+
+  // --- Builder: Report Daftar Produk (rata-rata B1..B5) ---
+  async function downloadReportProducts() {
+    const doc = await ReportBase.createDoc();
+    let y = await ReportBase.addHeader(doc);
+    y = ReportBase.addTitle(doc, 'Report Daftar Produk', y + 6);
+
+    const rows = __products.map(p => [
+      p.name,
+      p.avgRatings[0].toFixed(2),
+      p.avgRatings[1].toFixed(2),
+      p.avgRatings[2].toFixed(2),
+      p.avgRatings[3].toFixed(2),
+      p.avgRatings[4].toFixed(2),
+    ]);
+    ReportBase.addTable(doc, ['Nama Produk','Rata-rata B1','Rata-rata B2','Rata-rata B3','Rata-rata B4','Rata-rata B5'], rows, y + 4);
+
+    ReportBase.addSignature(doc);
+    ReportBase.save(doc, 'report-produk.pdf');
+  }
+
+  // --- Hubungkan ke tombol HTML yang sudah kamu buat ---
+  document.getElementById('btnReportSAW')?.addEventListener('click', downloadReportSAW);
+  document.getElementById('btnReportProducts')?.addEventListener('click', downloadReportProducts);
+
+  // (Opsional) Shortcut keyboard:
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.shiftKey && (e.key === 'S' || e.key === 's')) { e.preventDefault(); downloadReportSAW(); }
+    if (e.altKey && e.shiftKey && (e.key === 'P' || e.key === 'p')) { e.preventDefault(); downloadReportProducts(); }
+  });
+
+  // Expose for console (optional)
+  window.downloadReportSAW = downloadReportSAW;
+  window.downloadReportProducts = downloadReportProducts;
+})();
 </script>
 
 <%- include('partials/footer') %>

@@ -89,6 +89,9 @@
 
 <div class="settings-card">
     <h2>Pengaturan Bobot Kriteria (SAW)</h2>
+    <div style="margin-bottom:15px; text-align:right;">
+    <button id="btnReportWeights" class="btn-primary">Download Report Bobot</button>
+    </div>
     <p>Ubah nilai bobot untuk setiap kriteria. Pastikan total dari semua bobot adalah 1.0 agar perhitungannya akurat.</p>
 
     <% if (error) { %>
@@ -134,6 +137,54 @@
 
     inputs.forEach(input => input.addEventListener('input', updateTotal));
     updateTotal();
+</script>
+<!-- === Report Script: Weights (Bobot SAW) === -->
+<script>
+(async function attachWeightsReport() {
+  function loadOnce(src) {
+    return new Promise((resolve, reject) => {
+      if ([...document.scripts].some(s => s.src.includes(src))) return resolve();
+      const el = document.createElement('script');
+      el.src = src; el.onload = resolve; el.onerror = reject;
+      document.head.appendChild(el);
+    });
+  }
+  if (!window.jspdf) {
+    await loadOnce('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+  }
+  if (!window.jspdf?.jsPDF?.API?.autoTable) {
+    await loadOnce('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.3/dist/jspdf.plugin.autotable.min.js');
+  }
+  if (!window.ReportBase) {
+    await loadOnce('/js/report-base.js');
+  }
+
+  // Ambil data weights yang memang ada di halaman ini
+  let __weights = [];
+  try { __weights = JSON.parse('<%- JSON.stringify(weights) %>'); } catch (e) { __weights = []; }
+
+  async function downloadReportWeights() {
+    const doc = await ReportBase.createDoc();
+    let y = await ReportBase.addHeader(doc);
+    y = ReportBase.addTitle(doc, 'Report Bobot Kriteria SAW', y + 6);
+
+    const rows = (__weights || []).map(w => [w.criterion_code, w.criterion_name, w.weight]);
+    ReportBase.addTable(doc, ['Kode','Nama Kriteria','Bobot'], rows, y + 4);
+
+    ReportBase.addSignature(doc);
+    ReportBase.save(doc, 'report-bobot.pdf');
+  }
+
+  // Hubungkan ke tombol HTML
+  document.getElementById('btnReportWeights')?.addEventListener('click', downloadReportWeights);
+
+  // (Opsional) Shortcut
+  document.addEventListener('keydown', (e) => {
+    if (e.altKey && e.shiftKey && (e.key === 'W' || e.key === 'w')) { e.preventDefault(); downloadReportWeights(); }
+  });
+
+  window.downloadReportWeights = downloadReportWeights;
+})();
 </script>
 
 <%- include('../partials/footer') %>
