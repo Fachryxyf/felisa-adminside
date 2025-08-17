@@ -2,9 +2,7 @@
 <%- include('partials/sidebar') %>
 
 <style>
-  :root{
-    --sb: 260px;
-  }
+  :root { --sb: 260px; }
 
   .main-content{
     position: fixed;
@@ -15,17 +13,40 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    height: 100dvh;
   }
 
   .hero-cover{
     width: 100%;
     height: 100%;
-    background: url('../assets/bg.png') center center / cover no-repeat;
+    background: url('../assets/bg.png') center bottom no-repeat;
+    background-size: 100% auto;
+    background-color: #ffe4da;
+  }
+
+  @media (max-width: 768px){
+    :root { --sb: 0px; }
   }
 </style>
 
 <div class="main-content">
   <div class="hero-cover"></div>
 </div>
+
+<script>
+  (function(){
+    const sidebar =
+      document.querySelector('.sidebar, .sidebar-wrapper, aside') || null;
+    const setSB = () => {
+      if (!sidebar) return;
+      const w = Math.round(sidebar.getBoundingClientRect().width);
+      document.documentElement.style.setProperty('--sb', w + 'px');
+    };
+    setSB();
+    window.addEventListener('resize', setSB);
+    const ro = 'ResizeObserver' in window ? new ResizeObserver(setSB) : null;
+    if (ro) ro.observe(sidebar);
+  })();
+</script>
 
 <%- include('partials/footer') %>
